@@ -24,6 +24,31 @@ class ParseTests(SimpleTestCase):
         with self.assertRaises(AllocationError):
             parse_cargos([{"id": "C1", "volume": -1}])
 
+    def test_rejects_empty_cargo_id(self):
+        with self.assertRaises(AllocationError):
+            parse_cargos([{"id": "   ", "volume": 1}])
+
+    def test_rejects_malformed_cargo_row(self):
+        with self.assertRaises(AllocationError):
+            parse_cargos([{"id": "C1"}])
+
+    def test_rejects_duplicate_tank_ids(self):
+        with self.assertRaises(AllocationError):
+            parse_tanks(
+                [
+                    {"id": "T1", "capacity": 10},
+                    {"id": "T1", "capacity": 5},
+                ]
+            )
+
+    def test_rejects_negative_tank_capacity(self):
+        with self.assertRaises(AllocationError):
+            parse_tanks([{"id": "T1", "capacity": -1}])
+
+    def test_rejects_empty_tank_id(self):
+        with self.assertRaises(AllocationError):
+            parse_tanks([{"id": "", "capacity": 10}])
+
 
 class AllocateTests(SimpleTestCase):
     def test_splits_one_cargo_across_tanks(self):
@@ -58,6 +83,32 @@ class AllocateTests(SimpleTestCase):
             allocate([], [])["total_loaded_volume"],
             0,
         )
+
+    def test_all_cargo_volumes_zero(self):
+        out = allocate(
+            [CargoSpec("C1", 0), CargoSpec("C2", 0)],
+            [TankSpec("T1", 100)],
+        )
+        self.assertEqual(out["total_loaded_volume"], 0)
+        self.assertEqual(out["assignments"], [])
+        self.assertEqual(out["cargo_remaining"], {})
+
+    def test_all_tank_capacities_zero(self):
+        out = allocate(
+            [CargoSpec("C1", 50)],
+            [TankSpec("T1", 0), TankSpec("T2", 0)],
+        )
+        self.assertEqual(out["total_loaded_volume"], 0)
+        self.assertEqual(out["assignments"], [])
+        self.assertEqual(out["cargo_remaining"], {"C1": 50})
+
+    def test_cargo_remaining_when_capacities_too_small(self):
+        out = allocate(
+            [CargoSpec("C1", 100)],
+            [TankSpec("T1", 30)],
+        )
+        self.assertEqual(out["total_loaded_volume"], 30)
+        self.assertEqual(out["cargo_remaining"], {"C1": 70})
 
     def test_pdf_sample_cargo_volumes_with_symmetric_tanks(self):
         cargos = [
