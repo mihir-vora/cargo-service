@@ -1,0 +1,65 @@
+{
+  "info": {
+    "name": "Cargo Service API",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "description": "Cargo optimization service — input, optimize, results.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "job_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Input",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cargos\": [\n    { \"id\": \"C1\", \"volume\": 50 },\n    { \"id\": \"C2\", \"volume\": 30 }\n  ],\n  \"tanks\": [\n    { \"id\": \"T1\", \"capacity\": 40 },\n    { \"id\": \"T2\", \"capacity\": 25 }\n  ]\n}"
+        },
+        "url": "{{base_url}}/input",
+        "description": "POST /input — stores cargos and tanks. Response includes job_id (UUID)."
+      }
+    },
+    {
+      "name": "Optimize",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"job_id\": \"{{job_id}}\"\n}"
+        },
+        "url": "{{base_url}}/optimize",
+        "description": "POST /optimize — run allocator. Set collection variable job_id from Input response."
+      }
+    },
+    {
+      "name": "Results",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/results?job_id={{job_id}}",
+        "description": "GET /results?job_id= — returns assignments, total_loaded_volume, cargo_remaining."
+      }
+    }
+  ]
+}
