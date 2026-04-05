@@ -57,8 +57,13 @@ python manage.py runserver
 | `DJANGO_SECRET_KEY` | Django secret (set in production / Docker) |
 | `DJANGO_DEBUG` | `1` / `true` for local debugging |
 | `DJANGO_ALLOWED_HOSTS` | Comma-separated hosts |
+| `DJANGO_LOG_LEVEL` | `DEBUG`, `INFO`, `WARNING`, etc. (default `INFO`) |
 
 If you do not set these for local dev, `settings.py` uses safe-enough defaults for `runserver`.
+
+### Logging
+
+Logs go to **stderr** (console). Logger `allocation.api` records job lifecycle and errors: job created (counts), optimize finished (`total_loaded`, assignment count), results served, plus `warning` lines for validation, missing jobs, and results-before-optimize. In Docker, point your platform log drain at container stdout/stderr. **Monitoring** (metrics, tracing, APM) is not wired in; you would add that in the host environment (e.g. Prometheus sidecar, OpenTelemetry) or a managed service.
 
 ### Run tests
 
